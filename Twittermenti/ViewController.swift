@@ -23,47 +23,63 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        swifter.searchTweet(using: "@Apple", lang: "en", count: 100, tweetMode: .extended, success: { (results, metadata) in
-            
-            var tweets = [TweetSentimentClassifierInput]()
-            
-            for i in 0..<100 {
-                // SwiftyJSON
-                if let tweet = results[i]["full_text"].string {
-                    let tweetForClassifier = TweetSentimentClassifierInput(text: tweet)
-                    tweets.append(tweetForClassifier)
-                }
-            }
-            
-            do {
-                
-                let predictions = try self.sentimentClassifier.predictions(inputs: tweets)
-                var sentimentScore = 0
-                
-                for pred in predictions {
-                    let sentiment = pred.label
-                    if sentiment == "Pos" {
-                        sentimentScore += 1
-                    } else if sentiment == "Neg" {
-                        sentimentScore -= 1
-                    }
-                }
-                
-            } catch {
-                print(error)
-            }
-            
-            
-        }) { (error) in
-            print(error)
-        }
     }
 
     @IBAction func predictPressed(_ sender: Any) {
     
-    
+        if let searchText = textField.text {
+            
+            swifter.searchTweet(using: searchText, lang: "en", count: 100, tweetMode: .extended, success: { (results, metadata) in
+                
+                var tweets = [TweetSentimentClassifierInput]()
+                
+                for i in 0..<100 {
+                    // SwiftyJSON
+                    if let tweet = results[i]["full_text"].string {
+                        let tweetForClassifier = TweetSentimentClassifierInput(text: tweet)
+                        tweets.append(tweetForClassifier)
+                    }
+                }
+                
+                do {
+                    
+                    let predictions = try self.sentimentClassifier.predictions(inputs: tweets)
+                    var sentimentScore = 0
+                    
+                    for pred in predictions {
+                        let sentiment = pred.label
+                        if sentiment == "Pos" {
+                            sentimentScore += 1
+                        } else if sentiment == "Neg" {
+                            sentimentScore -= 1
+                        }
+                    }
+                    
+                    if sentimentScore > 20 {
+                        self.sentimentLabel.text = "🤗"
+                    } else if sentimentScore > 10 {
+                        self.sentimentLabel.text = "😏"
+                    } else if sentimentScore > 0 {
+                        self.sentimentLabel.text = "😅"
+                    } else if sentimentScore == 0 {
+                        self.sentimentLabel.text = "😒"
+                    } else if sentimentScore > -10 {
+                        self.sentimentLabel.text = "🙁"
+                    } else if sentimentScore > -20 {
+                        self.sentimentLabel.text = "😢"
+                    } else {
+                        self.sentimentLabel.text = "😭"
+                    }
+                    
+                } catch {
+                    print(error)
+                }
+                
+                
+            }) { (error) in
+                print(error)
+            }
+        }
     }
-    
 }
 
